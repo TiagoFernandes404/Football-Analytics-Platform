@@ -47,32 +47,12 @@ Analytical layer with advanced metrics calculated in SQL, interactive dashboard 
 
 ---
 
-## 🛠️ Development Process
-
-### Step 1 — Environment Setup
-Installed and configured all the required tools: PostgreSQL 16, Python 3.11 via deadsnakes PPA, pgAdmin 4, and VS Code with the Thunder Client extension. Created the project structure and virtual environment, and installed all Python dependencies.
-
-### Step 2 — API Exploration
-First contact with a REST API. Used Thunder Client to manually call each endpoint from football-data.org and analyse the raw JSON responses — areas, competitions, seasons, teams, matches, persons, standings and scorers — before writing any code.
-
-### Step 3 — Database Schema Design
-Designed the full relational schema from scratch in draw.io by analysing each API response field by field. Key decisions made during this process:
-- Identified arrays in the API responses as many-to-many relationships requiring junction tables (`match_referees`, `person_competitions`)
-- Chose to flatten the `score` object directly into the `matches` table (denormalisation) since it is always 1-to-1
-- Designed composite primary keys for `scorers` (`person_id`, `competition_id`, `season_id`) and `standings` (`team_id`, `competition_id`, `season_id`)
-- Used a self-referencing foreign key in `areas` for the parent area relationship
-
-The schema covers 11 tables and was fully designed before writing a single line of SQL.
-
----
-
 ## 🗄️ Database Schema
 
-The relational schema was designed by analysing each API endpoint response before writing any code. It covers 11 tables:
+15 tables designed from scratch by analysing each API endpoint response.
+For the full schema evolution and design decisions see [Development Log](docs/DEVELOPMENT_LOG.md).
 
-`areas` · `competitions` · `seasons` · `teams` · `matches` · `referees` · `match_referees` · `persons` · `person_competitions` · `scorers` · `standings`
-
-![ER Diagram](docs/er_diagram.png)
+![ER Diagram](docs/er_diagram_v2.png)
 
 ---
 
@@ -88,7 +68,7 @@ The relational schema was designed by analysing each API endpoint response befor
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/football-analytics-platform.git
+git clone https://github.com/TiagoFernandes404/Football-Analytics-Platform.git
 cd football-analytics-platform
 
 # Create and activate virtual environment
@@ -109,7 +89,7 @@ cp .env.example .env
 API_KEY=your_football_data_api_key
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=football_analytics
+DB_NAME=football_intelligence_platform
 DB_USER=postgres
 DB_PASSWORD=your_password
 ```
@@ -124,8 +104,7 @@ football-analytics-platform/
 │   └── settings.py          # Configuration loader
 ├── database/
 │   ├── connection.py        # Database connection
-│   ├── models.py            # SQLAlchemy models
-│   └── migrations/          # Schema migrations
+│   └── schema.sql           # SQL schema
 ├── etl/
 │   ├── extract.py           # API extraction
 │   ├── transform.py         # Data transformation
@@ -133,25 +112,13 @@ football-analytics-platform/
 ├── pipeline/
 │   └── runner.py            # Pipeline orchestration
 ├── docs/
-│   ├── er_diagram.png       # ER diagram
-│   └── er_diagram.xml       # Editable draw.io file
+│   ├── DEVELOPMENT_LOG.md   # Session logs and design decisions
+│   ├── er_diagram.png       # ER diagram v1
+│   ├── er_diagram.xml       # Editable draw.io file v1
+│   ├── er_diagram_v2.png    # ER diagram v2
+│   └── er_diagram_v2.xml    # Editable draw.io file v2
 ├── logs/                    # Execution logs
 ├── .env                     # Environment variables (not committed)
 ├── requirements.txt
 └── README.md
 ```
-
----
-
-## 📋 Requirements
-
-```
-requests
-psycopg2-binary
-sqlalchemy
-python-dotenv
-```
-
----
-
-*Built from scratch as a learning project — every design decision was made with understanding, not just copying.*
