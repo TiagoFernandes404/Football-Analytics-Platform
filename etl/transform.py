@@ -79,7 +79,6 @@ def transform_teamstaff(data):
         for person in (safe_get(team, 'staff') or [])
     ]
 
-
 def transform_coach(data):
     return [
         {
@@ -93,7 +92,7 @@ def transform_coach(data):
             "contractUntil": safe_get(team, 'coach', 'contract', 'until'),
         }
         for team in data['teams']
-        if safe_get(team, 'coach')
+        if safe_get(team, 'coach') and safe_get(team, 'coach', 'id')
     ]
 
 
@@ -104,8 +103,9 @@ def transform_teamcoach(data):
             "coach_id": team['coach']['id'],
         }
         for team in data['teams']
-        if safe_get(team, 'coach')
+        if safe_get(team, 'coach') and safe_get(team, 'coach', 'id')
     ]
+
 
 
 def transform_seasons(data):
@@ -168,8 +168,8 @@ def transform_scorers(data):
             "penalties": safe_get(scorer, 'penalties') or 0,
         }
         for scorer in data['scorers']
+        if safe_get(scorer, 'player', 'id') and safe_get(scorer, 'team', 'id')
     ]
-
 
 def transform_matches(data):
     return [
