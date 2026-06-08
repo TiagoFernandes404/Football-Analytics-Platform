@@ -34,6 +34,11 @@ def fetch_matches(competition_id):
     response = requests.get(URL, headers=headers)
     return response.json()
 
+def fetch_person(person_id):
+    URL = f"{BASE_URL}persons/{person_id}"
+    response = requests.get(URL, headers=headers)
+    return response.json()
+
 
 # we go and get all the things from the api some dont need to have a unique like a person because they are include in
 # the other ones, like persons is in teams

@@ -80,3 +80,30 @@ Removed an accidental `.Rhistory` file that had been committed in session 1.
 
 **Next session:** Connect the API to the database via Python — `settings.py` → 
 `connection.py` → `extract.py`.
+
+---
+
+## Session 3 — Extraction, Transformation & Error Handling
+
+**Objectives:**
+
+* Continue implementing the extraction process
+* Start the transformation phase
+* Add error handling and respect API rate limits
+
+**Work done:**
+
+### Extraction
+
+Continued working on the extraction phase by analysing the API structure in more detail and implementing the required data retrieval logic. Based on the previous API analysis, selected the necessary entities and identified which information could be obtained directly from the endpoints and which could be derived through relationships with other entities.
+
+### Transformation
+
+Started the transformation phase, preparing the extracted data for database insertion. Special attention was given to data types, particularly `TEXT` fields, to ensure compatibility with the database schema. To improve reliability, a helper function was created to safely handle `null` values and prevent transformation errors caused by missing data.
+
+### Error Handling and API Constraints
+
+While reviewing the extraction process, it became clear that additional error handling was required due to the possibility of API request failures. After consulting the API documentation, an important constraint was identified: the API allows a maximum of 6 requests per second. To accommodate this limitation, the extraction logic was reviewed and tested with rate-limiting considerations in mind, ensuring that requests remained within the allowed threshold and reducing the risk of failed executions.
+
+**Next session:** Begin implementing the load phase and integrate the transformed data into the PostgreSQL database.
+
