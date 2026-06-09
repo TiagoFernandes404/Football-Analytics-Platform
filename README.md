@@ -21,10 +21,11 @@ This is my first independent project outside of university — built to learn Po
 Extract real football data from the [football-data.org](https://www.football-data.org) API (free tier), transform it and load it automatically into a PostgreSQL database.
 
 **Objectives:**
-- Automated pipeline with scheduled runs
-- Execution logs and error handling
-- Historical data tracking per season
-- Normalised relational schema designed from scratch
+- ✅ Normalised relational schema designed from scratch
+- ✅ ETL pipeline structure (extract / transform / load) — the backbone of the project, without which nothing else would be possible
+- ✅ Execution logs and error handling
+- ⏳ Automated pipeline with scheduled runs
+- ⏳ Historical data tracking per season
 
 **Technologies:** PostgreSQL 16, Python 3.11, SQLAlchemy, psycopg2, requests, python-dotenv
 
@@ -60,7 +61,7 @@ For the full schema evolution and design decisions see [Development Log](docs/DE
 
 [football-data.org](https://www.football-data.org) — Free tier (TIER_ONE)
 
-**Competitions covered:** Premier League, Bundesliga, Serie A, Ligue 1, Primeira Liga, Championship, Eredivisie, Champions League, European Championship, FIFA World Cup, Copa Libertadores, Brasileirão.
+**Competitions covered:** Campeonato Brasileiro Série A, Championship, Premier League, UEFA Champions League, European Championship, Ligue 1, Bundesliga, Serie A, Eredivisie, Primeira Liga, Copa Libertadores, Primera Division, FIFA World Cup.
 
 ---
 
