@@ -1,10 +1,8 @@
 import logging
 import os
 from datetime import datetime
-
 os.makedirs("logs", exist_ok=True)
 log_filename = f"logs/pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
@@ -14,7 +12,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
 # this code above works so i can register the logs of everything i run so when i leave the api running for 
 # exemple overnight in the morning i can check i up
 # we put it first so we dont get any problems 
@@ -28,7 +25,6 @@ def run_etl(fetch_func, transform_func, load_func):
     load_func(transformed)
 
 competitions_data = fetch_competitions()
-
 # seasons are inserted without winner_id because teams don't exist yet so we skip the problem
 run_etl(fetch_areas, transform_areas, load_areas)
 run_etl(fetch_competitions, transform_seasons, load_seasons)
@@ -43,27 +39,48 @@ for competition in competitions_data['competitions']:
     load_teamcoach(transform_teamcoach(teams_data))
 
     # so here i make the part of the engine decision making if there is someting new to check or not 
-    # so i can save time in the execution 
+    # so i can save time in the execution
+    # i was having a problem runninng the api and i got no internte connection often so the soluction was
+    # to save the person it fail in a list and then come back to it to make sure i can run the api 
+    # because now i leave it all night and i doesn´t run all the way beacusae it loss internet con
+    failed_persons = []
+
     for team in teams_data['teams']:
         for player in team['squad']:
             db_last_updated = get_person_last_updated(player['id'])
             api_last_updated = player.get('lastUpdated')
-
             if db_last_updated is None:
                 # if this person doen´t have a last update it doesn't exist so i have to check to create it 
                 logger.info(f"New person {player['id']} - fetching")
                 person_data = fetch_persons(player['id'])
-                load_persons(transform_persons(person_data))
-                load_personcompetition(transform_personcompetition(person_data))
+                if person_data:
+                    load_persons(transform_persons(person_data))
+                    load_personcompetition(transform_personcompetition(person_data))
+                else:
+                    failed_persons.append(player['id'])
             elif api_last_updated and str(db_last_updated) != api_last_updated:
                 # this person is created but i have something new in the api
                 logger.info(f"Updated person {player['id']} - fetching")
                 person_data = fetch_persons(player['id'])
-                load_persons(transform_persons(person_data))
-                load_personcompetition(transform_personcompetition(person_data))
+                if person_data:
+                    load_persons(transform_persons(person_data))
+                    load_personcompetition(transform_personcompetition(person_data))
+                else:
+                    failed_persons.append(player['id'])
             else:
                 # this person hasn´t got new info so i skip
                 logger.info(f"Skipping person {player['id']} - already up to date")
+
+    # retry failed persons at the end
+    if failed_persons:
+        logger.info(f"Retrying {len(failed_persons)} failed persons...")
+        for person_id in failed_persons:
+            person_data = fetch_persons(person_id)
+            if person_data:
+                load_persons(transform_persons(person_data))
+                load_personcompetition(transform_personcompetition(person_data))
+            else:
+                logger.error(f"Person {person_id} failed again - skipping")
 
     # only after persons are inserted we can insert squad relations
     load_squadplayers(transform_squadplayers(teams_data))
