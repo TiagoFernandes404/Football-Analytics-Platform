@@ -1,6 +1,3 @@
-from etl.extract import *
-from etl.transform import *
-from etl.load import *
 import logging
 import os
 from datetime import datetime
@@ -20,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 # this code above works so i can register the logs of everything i run so when i leave the api running for 
 # exemple overnight in the morning i can check i up
+# we put it first so we dont get any problems 
+from etl.extract import *
+from etl.transform import *
+from etl.load import *
 
 def run_etl(fetch_func, transform_func, load_func):
     data = fetch_func()

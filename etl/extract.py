@@ -3,7 +3,7 @@ import logging
 import requests
 from config.settings import API_KEY, RATE_LIMIT_DELAY, MAX_RETRIES
 
-logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 headers = {"X-Auth-Token": API_KEY}
