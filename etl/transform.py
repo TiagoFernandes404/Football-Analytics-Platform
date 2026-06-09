@@ -1,9 +1,18 @@
+# function to protect the elements that can come back null
 def safe_get(obj, *keys, default=None):
     for key in keys:
         if obj is None:
             return default
         obj = obj.get(key) if isinstance(obj, dict) else None
     return obj if obj is not None else default
+
+# so the api returns the date in a YYYY-MM and the DB expects YY-MM-DD so the soluction i found was to make a function
+# thats puts the days in 01 so i can skip this error and keep the DB DATE secure for the queries
+# because is contract dates i think that the day beigng the first who´t matter much
+def fix_date(value):
+    if value and len(value) == 7:  # "YYYY-MM" -> "YYYY-MM-01"
+        return value + "-01"
+    return value
 
 
 def transform_areas(data):
@@ -12,7 +21,7 @@ def transform_areas(data):
             "id": area['id'],
             "name": str(area['name']),
             "code": str(area['countryCode']),
-            "flag": str(safe_get(area, 'flag')) if safe_get(area, 'flag') else None,
+            "flag": safe_get(area, 'flag'),
             "parentArea_id": safe_get(area, 'parentAreaId'),
         }
         for area in data['areas']
@@ -23,16 +32,16 @@ def transform_teams(data):
     return [
         {
             "id": team['id'],
-            "area_id": team['area']['id'],
+            "area_id": safe_get(team, 'area', 'id'),
             "name": str(team['name']),
             "shortName": str(team['shortName']),
             "tla": str(team['tla']),
             "crest": str(team['crest']),
-            "address": str(safe_get(team, 'address')) if safe_get(team, 'address') else None,
-            "website": str(safe_get(team, 'website')) if safe_get(team, 'website') else None,
+            "address": safe_get(team, 'address'),
+            "website": safe_get(team, 'website'),
             "founded": safe_get(team, 'founded'),
-            "clubColors": str(safe_get(team, 'clubColors')) if safe_get(team, 'clubColors') else None,
-            "venue": str(safe_get(team, 'venue')) if safe_get(team, 'venue') else None,
+            "clubColors": safe_get(team, 'clubColors'),
+            "venue": safe_get(team, 'venue'),
             "lastUpdated": team['lastUpdated'],
         }
         for team in data['teams']
@@ -45,15 +54,15 @@ def transform_persons(data):
             "id": data['id'],
             "name": str(data['name']),
             "firstName": str(data['firstName']),
-            "lastName": str(safe_get(data, 'lastName')) if safe_get(data, 'lastName') else None,
+            "lastName": safe_get(data, 'lastName'),
             "dateOfBirth": safe_get(data, 'dateOfBirth'),
-            "nationality": str(data['nationality']),
-            "section": str(data['section']),
-            "position": str(safe_get(data, 'position')) if safe_get(data, 'position') else None,
+            "nationality": safe_get(data, 'nationality'),
+            "section": safe_get(data, 'section'),
+            "position": safe_get(data, 'position'),
             "shirtNumber": safe_get(data, 'shirtNumber'),
             "lastUpdated": data['lastUpdated'],
-            "contractStart": safe_get(data, 'currentTeam', 'contract', 'start'),
-            "contractUntil": safe_get(data, 'currentTeam', 'contract', 'until'),
+            "contractStart": fix_date(safe_get(data, 'currentTeam', 'contract', 'start')),
+            "contractUntil": fix_date(safe_get(data, 'currentTeam', 'contract', 'until')),
         }
     ]
 
@@ -79,17 +88,18 @@ def transform_teamstaff(data):
         for person in (safe_get(team, 'staff') or [])
     ]
 
+
 def transform_coach(data):
     return [
         {
-            "id": team['coach']['id'],
-            "firstName": str(safe_get(team, 'coach', 'firstName')) if safe_get(team, 'coach', 'firstName') else None,
-            "lastName": str(safe_get(team, 'coach', 'lastName')) if safe_get(team, 'coach', 'lastName') else None,
-            "name": str(safe_get(team, 'coach', 'name')) if safe_get(team, 'coach', 'name') else None,
+            "id": safe_get(team, 'coach', 'id'),
+            "firstName": safe_get(team, 'coach', 'firstName'),
+            "lastName": safe_get(team, 'coach', 'lastName'),
+            "name": safe_get(team, 'coach', 'name'),
             "dateOfBirth": safe_get(team, 'coach', 'dateOfBirth'),
-            "nationality": str(safe_get(team, 'coach', 'nationality')) if safe_get(team, 'coach', 'nationality') else None,
-            "contractStart": safe_get(team, 'coach', 'contract', 'start'),
-            "contractUntil": safe_get(team, 'coach', 'contract', 'until'),
+            "nationality": safe_get(team, 'coach', 'nationality'),
+            "contractStart": fix_date(safe_get(team, 'coach', 'contract', 'start')),
+            "contractUntil": fix_date(safe_get(team, 'coach', 'contract', 'until')),
         }
         for team in data['teams']
         if safe_get(team, 'coach') and safe_get(team, 'coach', 'id')
@@ -100,12 +110,11 @@ def transform_teamcoach(data):
     return [
         {
             "team_id": team['id'],
-            "coach_id": team['coach']['id'],
+            "coach_id": safe_get(team, 'coach', 'id'),
         }
         for team in data['teams']
         if safe_get(team, 'coach') and safe_get(team, 'coach', 'id')
     ]
-
 
 
 def transform_seasons(data):
@@ -115,13 +124,11 @@ def transform_seasons(data):
             "startDate": competition['currentSeason']['startDate'],
             "endDate": safe_get(competition, 'currentSeason', 'endDate'),
             "currentMatchday": safe_get(competition, 'currentSeason', 'currentMatchday'),
-            "winner_id": safe_get(competition, 'currentSeason', 'winner'),
+            "winner_id": None,  # here insert as none and in the end we search for the winner 
         }
         for competition in data['competitions']
         if safe_get(competition, 'currentSeason')
     ]
-
-
 
 
 def transform_referee(data):
@@ -129,12 +136,13 @@ def transform_referee(data):
         {
             "id": referee['id'],
             "name": str(referee['name']),
-            "type": str(referee['type']),
-            "nationality": str(referee['nationality']),
+            "type": safe_get(referee, 'type'),
+            "nationality": safe_get(referee, 'nationality'),
         }
         for match in data['matches']
         for referee in (safe_get(match, 'referees') or [])
     ]
+
 
 def transform_competitions(data):
     return [
@@ -143,15 +151,26 @@ def transform_competitions(data):
             "area_id": competition['area']['id'],
             "name": str(competition['name']),
             "code": str(competition['code']),
-            "type": str(safe_get(competition, 'type')) if safe_get(competition, 'type') else None,
-            "emblem": str(safe_get(competition, 'emblem')) if safe_get(competition, 'emblem') else None,
-            "plan": str(safe_get(competition, 'plan')) if safe_get(competition, 'plan') else None,
+            "type": safe_get(competition, 'type'),
+            "emblem": safe_get(competition, 'emblem'),
+            "plan": safe_get(competition, 'plan'),
             "currentSeason": competition['currentSeason']['id'],
             "numberOfAvailableSeasons": competition['numberOfAvailableSeasons'],
             "lastUpdated": competition['lastUpdated'],
         }
         for competition in data['competitions']
         if safe_get(competition, 'currentSeason')
+    ]
+
+
+def transform_matchreferee(data):
+    return [
+        {
+            "match_id": match['id'],
+            "referee_id": referee['id'],
+        }
+        for match in data['matches']
+        for referee in (safe_get(match, 'referees') or [])
     ]
 
 
@@ -171,23 +190,24 @@ def transform_scorers(data):
         if safe_get(scorer, 'player', 'id') and safe_get(scorer, 'team', 'id')
     ]
 
+
 def transform_matches(data):
     return [
         {
             "id": match['id'],
-            "area_id": match['area']['id'],
-            "competition_id": match['competition']['id'],
-            "season_id": match['season']['id'],
+            "area_id": safe_get(match, 'area', 'id'),
+            "competition_id": safe_get(match, 'competition', 'id'),
+            "season_id": safe_get(match, 'season', 'id'),
             "utcDate": match['utcDate'],
-            "status": str(safe_get(match, 'status')) if safe_get(match, 'status') else None,
-            "matchday": match['matchday'],
-            "stage": str(safe_get(match, 'stage')) if safe_get(match, 'stage') else None,
-            "match_group": str(safe_get(match, 'group')) if safe_get(match, 'group') else None,
+            "status": safe_get(match, 'status'),
+            "matchday": safe_get(match, 'matchday'),
+            "stage": safe_get(match, 'stage'),
+            "match_group": safe_get(match, 'group'),
             "lastUpdated": match['lastUpdated'],
-            "homeTeam": match['homeTeam']['id'],
-            "awayTeam": match['awayTeam']['id'],
-            "scoreWinner": str(safe_get(match, 'score', 'winner')) if safe_get(match, 'score', 'winner') else None,
-            "scoreDuration": str(safe_get(match, 'score', 'duration')) if safe_get(match, 'score', 'duration') else None,
+            "homeTeam": safe_get(match, 'homeTeam', 'id'),
+            "awayTeam": safe_get(match, 'awayTeam', 'id'),
+            "scoreWinner": safe_get(match, 'score', 'winner'),
+            "scoreDuration": safe_get(match, 'score', 'duration'),
             "scoreFullTime": str(safe_get(match, 'score', 'fullTime')) if safe_get(match, 'score', 'fullTime') else None,
             "scoreHalfTime": str(safe_get(match, 'score', 'halfTime')) if safe_get(match, 'score', 'halfTime') else None,
         }
@@ -195,14 +215,26 @@ def transform_matches(data):
     ]
 
 
-def transform_matchreferee(data):
+def transform_standings(data):
     return [
         {
-            "match_id": match['id'],
-            "referee_id": referee['id'],
+            "team_id": table['team']['id'],
+            "competition_id": data['competition']['id'],
+            "season_id": data['season']['id'],
+            "stage": safe_get(standings, 'stage'),
+            "position": table['position'],
+            "playedGames": table['playedGames'],
+            "form": safe_get(table, 'form'),
+            "won": table['won'],
+            "draw": table['draw'],
+            "lost": table['lost'],
+            "points": table['points'],
+            "goalsFor": table['goalsFor'],
+            "goalsAgainst": table['goalsAgainst'],
+            "goalDifference": table['goalDifference'],
         }
-        for match in data['matches']
-        for referee in (safe_get(match, 'referees') or [])
+        for standings in data['standings']
+        for table in standings['table']
     ]
 
 
@@ -213,4 +245,16 @@ def transform_personcompetition(data):
             "competition_id": competition['id'],
         }
         for competition in (safe_get(data, 'currentTeam', 'runningCompetitions') or [])
+    ]
+
+# so because the winner comes from teams if i introduce the winner after the teams are introduced i can solve the problem
+# same as load 
+def transform_seasons_winner(data):
+    return [
+        {
+            "id": competition['currentSeason']['id'],
+            "winner_id": safe_get(competition, 'currentSeason', 'winner', 'id'),
+        }
+        for competition in data['competitions']
+        if safe_get(competition, 'currentSeason')
     ]

@@ -62,7 +62,7 @@ def fetch_matches(competition_id):
     url = f"{BASE_URL}competitions/{competition_id}/matches"
     return fetch_with_retry(url)
 
-def fetch_person(person_id):
+def fetch_persons(person_id):
     url = f"{BASE_URL}persons/{person_id}"
     return fetch_with_retry(url)
 

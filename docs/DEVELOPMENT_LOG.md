@@ -107,3 +107,34 @@ While reviewing the extraction process, it became clear that additional error ha
 
 **Next session:** Begin implementing the load phase and integrate the transformed data into the PostgreSQL database.
 
+## Session 4 — Load Phase, Pipeline Integration & Bug Fixes
+
+**Objectives:**
+- Implement the load phase
+- Build and run the full ETL pipeline
+- Fix data integrity and schema issues
+
+**Work done:**
+
+### Load Phase
+Implemented all `load_*` functions in `load.py` using a shared `load_to_db` helper to avoid code repetition. Each function uses `ON CONFLICT DO UPDATE` to handle re-runs cleanly — if the same record arrives twice, it updates instead of failing.
+
+### Pipeline Runner
+Built `pipeline/runner.py` to orchestrate the full ETL flow. Established the correct insertion order to respect foreign key dependencies: areas → seasons → competitions → teams → persons → matches.
+
+### Bug Fixes & Schema Corrections
+
+**`InvalidDatetimeFormat` on contract dates**
+The API returns contract dates in `YYYY-MM` format but PostgreSQL `DATE` expects `YYYY-MM-DD`. Fixed by adding a `fix_date()` helper in `transform.py` that appends `-01` to incomplete dates. Chosen over changing the column type to preserve date query capability.
+
+**Foreign key ordering issues**
+Several `ForeignKeyViolation` errors were caused by inserting child records before parents. Resolved by reordering the pipeline and adding `DEFERRABLE INITIALLY DEFERRED` to two self-referencing or circular constraints (`area_parentarea_id_fkey`, `competition_currentseason_fkey`).
+
+**`season.winner_id` circular dependency**
+Seasons reference the winning team, but teams are inserted after seasons. Solved by inserting seasons with `winner_id = NULL` first, then updating after all teams are loaded using a dedicated `transform_seasons_winner` and `load_seasons_winner`.
+
+**`personcompetition` references unavailable competitions**
+Players can participate in competitions not available on the free API plan. Since those competitions are never inserted, the FK would always fail for those records. Dropped the `competition_id` foreign key on `personcompetition` — the valid competition records are still inserted correctly.
+
+### Performance Optimisation
+Added a `get_person_last_updated()` function to check if a person already exists in the database and when they were last updated. The pipeline now skips API requests for players that are already up to date, significantly reducing execution time on subsequent runs.

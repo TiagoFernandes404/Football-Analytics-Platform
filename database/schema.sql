@@ -1,3 +1,4 @@
+
 -- IDs come directly from the API so no SERIAL or IDENTITY needed
 -- TEXT for fields where max size is unpredictable (names, urls, etc)
 -- VARCHAR(n) where size is logically limited (e.g. tla is always 3 chars)
@@ -203,11 +204,23 @@ CREATE TABLE matchreferee(
     FOREIGN KEY (referee_id) REFERENCES referee(id)
 );
 
+-- area references itself (parentArea_id) so when inserting all areas at once
+-- the parent may not exist yet when the child is inserted
+-- DEFERRABLE INITIALLY DEFERRED tells PostgreSQL to only check the FK at the end of the transaction
+ALTER TABLE area DROP CONSTRAINT area_parentarea_id_fkey;
+ALTER TABLE area ADD CONSTRAINT area_parentarea_id_fkey 
+    FOREIGN KEY (parentArea_id) REFERENCES area(id) 
+    DEFERRABLE INITIALLY DEFERRED;
+
+-- competition references season but seasons winner_id is set to NULL on insert
+-- so we only need to defer competition -> season, not season -> team
+ALTER TABLE competition DROP CONSTRAINT competition_currentseason_fkey;
+ALTER TABLE competition ADD CONSTRAINT competition_currentseason_fkey
+    FOREIGN KEY (currentSeason) REFERENCES season(id)
+    DEFERRABLE INITIALLY DEFERRED;
 
 
-
-
-
-
-
-
+-- Because a use the free plan i can upload personcompetition because some came wiht the league i dont have acess
+-- so if i take competition of FK that solves it i losse the verification but the competition i have on the BD 
+-- are insert when i pass the competitions
+ALTER TABLE personcompetition DROP CONSTRAINT personcompetition_competition_id_fkey;
