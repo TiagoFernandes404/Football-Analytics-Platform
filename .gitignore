@@ -5,7 +5,7 @@ venv/
 .env
 
 # Python
-__pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 
@@ -16,5 +16,3 @@ logs/*.log
 .vscode/
 .idea/
 
-# Generated output
-output_*.json
