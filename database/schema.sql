@@ -224,3 +224,6 @@ ALTER TABLE competition ADD CONSTRAINT competition_currentseason_fkey
 -- so if i take competition of FK that solves it i losse the verification but the competition i have on the BD 
 -- are insert when i pass the competitions
 ALTER TABLE personcompetition DROP CONSTRAINT personcompetition_competition_id_fkey;
+
+-- got a error saying nationalaty was to small so i updated it to varchar100
+ALTER TABLE person ALTER COLUMN nationality TYPE VARCHAR(100);
