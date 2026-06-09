@@ -138,3 +138,9 @@ Players can participate in competitions not available on the free API plan. Sinc
 
 ### Performance Optimisation
 Added a `get_person_last_updated()` function to check if a person already exists in the database and when they were last updated. The pipeline now skips API requests for players that are already up to date, significantly reducing execution time on subsequent runs.
+
+### Execution Logging
+Added persistent file logging to the pipeline runner. Each run creates a timestamped 
+log file in `logs/` (e.g. `pipeline_20260609_011500.log`) capturing all events — 
+successful inserts, skipped records, errors and retries. Logs are written to both 
+the console and file simultaneously.

@@ -2,7 +2,24 @@ from etl.extract import *
 from etl.transform import *
 from etl.load import *
 import logging
+import os
+from datetime import datetime
+
+os.makedirs("logs", exist_ok=True)
+log_filename = f"logs/pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
+    handlers=[
+        logging.FileHandler(log_filename),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
+
+# this code above works so i can register the logs of everything i run so when i leave the api running for 
+# exemple overnight in the morning i can check i up
 
 def run_etl(fetch_func, transform_func, load_func):
     data = fetch_func()
