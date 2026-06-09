@@ -24,7 +24,7 @@ Extract real football data from the [football-data.org](https://www.football-dat
 - ✅ Normalised relational schema designed from scratch
 - ✅ ETL pipeline structure (extract / transform / load) — the backbone of the project, without which nothing else would be possible
 - ✅ Execution logs and error handling
-- ⏳ Automated pipeline with scheduled runs
+- ✅  Automated pipeline with scheduled runs
 - ⏳ Historical data tracking per season
 
 **What I expect to learn:** How to design and build a real data pipeline from scratch — consuming a REST API, handling real-world data quality issues, and loading data reliably into a relational database. Moving beyond university exercises into something that works with live, unpredictable data.

@@ -144,3 +144,75 @@ Added persistent file logging to the pipeline runner. Each run creates a timesta
 log file in `logs/` (e.g. `pipeline_20260609_011500.log`) capturing all events — 
 successful inserts, skipped records, errors and retries. Logs are written to both 
 the console and file simultaneously.
+
+## Session 5 — Fault Tolerance, Schema Fix & Scheduling
+
+**Objectives:**
+- Improve pipeline resilience against network interruptions
+- Fix schema constraint issues found in production logs
+- Automate weekly pipeline execution
+
+**Work done:**
+
+### Network Fault Tolerance
+
+While reviewing the overnight pipeline log, it became clear that the pipeline was not completing full runs — network interruptions were causing `fetch_persons()` to fail mid-execution, leaving a portion of players unprocessed. To address this, a `failed_persons` retry queue was implemented in `runner.py`.
+
+During the main loop, any player whose `fetch_persons()` call returns no data is appended to `failed_persons` instead of being silently skipped. Once the full team and squad loop completes, the pipeline makes a second pass over every queued `person_id` and retries the fetch. If the retry also fails, the error is logged and the record is skipped — this ensures a single bad request cannot block `load_squadplayers()`, which depends on all persons being inserted first and is only called after both passes are finished.
+
+```python
+failed_persons = []
+
+for team in teams_data['teams']:
+    for player in team['squad']:
+        db_last_updated = get_person_last_updated(player['id'])
+        api_last_updated = player.get('lastUpdated')
+
+        if db_last_updated is None:
+            person_data = fetch_persons(player['id'])
+            if person_data:
+                load_persons(transform_persons(person_data))
+                load_personcompetition(transform_personcompetition(person_data))
+            else:
+                failed_persons.append(player['id'])
+
+        elif api_last_updated and str(db_last_updated) != api_last_updated:
+            person_data = fetch_persons(player['id'])
+            if person_data:
+                load_persons(transform_persons(person_data))
+                load_personcompetition(transform_personcompetition(person_data))
+            else:
+                failed_persons.append(player['id'])
+
+        else:
+            logger.info(f"Skipping person {player['id']} - already up to date")
+
+# retry failed persons before squad relations are inserted
+if failed_persons:
+    logger.info(f"Retrying {len(failed_persons)} failed persons...")
+    for person_id in failed_persons:
+        person_data = fetch_persons(person_id)
+        if person_data:
+            load_persons(transform_persons(person_data))
+            load_personcompetition(transform_personcompetition(person_data))
+        else:
+            logger.error(f"Person {person_id} failed again - skipping")
+
+load_squadplayers(transform_squadplayers(teams_data))
+```
+
+### Schema Fix — `nationality` Column Overflow
+
+A `value too long for type character varying` error was raised during load, caused by nationality strings in the API responses exceeding the original column width. The `nationality` column on the `person` table was widened to accommodate longer values:
+
+```sql
+ALTER TABLE person ALTER COLUMN nationality TYPE VARCHAR(100);
+```
+
+### Automated Scheduling
+
+Configured a `cron` job to run the pipeline automatically on a weekly schedule, removing the need to trigger it manually. The pipeline now executes unattended and writes its timestamped log to `logs/` as usual, making it straightforward to review what happened after each scheduled run.
+
+---
+
+**Next session:** TBD.

@@ -1,0 +1,7 @@
+# to use this we have to do the command crontab -e in the consule and then we put the line of code
+
+# so i choose to use cron because with the research i did i seem like a easy tool and important to master becuase it runnes with the pc open i dont need to be on the programm just the pc on
+# and assuming i work in tech my pc will be on all the time so i works 
+# as i'm working wiht a football api the games ocurre mostly on weekends so i will choose ti go and get the info on monday like at 11 am so i know my pc will be on 
+
+0 11 * * 1 cd /home/tiago/football-analytics-platform && source /home/tiago/football-analytics-platform/venv/bin/activate && python3 -m pipeline.runner
