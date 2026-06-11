@@ -1,4 +1,5 @@
 
+
 -- IDs come directly from the API so no SERIAL or IDENTITY needed
 -- TEXT for fields where max size is unpredictable (names, urls, etc)
 -- VARCHAR(n) where size is logically limited (e.g. tla is always 3 chars)
@@ -227,3 +228,13 @@ ALTER TABLE personcompetition DROP CONSTRAINT personcompetition_competition_id_f
 
 -- got a error saying nationalaty was to small so i updated it to varchar100
 ALTER TABLE person ALTER COLUMN nationality TYPE VARCHAR(100);
+
+-- i have to allow NULL in columns where source API can return null becuase it was giving out errors
+
+ALTER TABLE match
+    ALTER COLUMN matchday    DROP NOT NULL,
+    ALTER COLUMN homeTeam    DROP NOT NULL,
+    ALTER COLUMN awayTeam    DROP NOT NULL;
+
+ALTER TABLE referee
+    ALTER COLUMN nationality DROP NOT NULL;

@@ -166,11 +166,12 @@ def load_referees(data):
     """)
     load_to_db(data, query, "load_referees")
 
-
+# i had to switch it because tthey were treing to put plasyers i ddinot have the matches for mabye matrch premium or somtehing
 def load_squadplayers(data):
     query = text("""
         INSERT INTO squadplayer (team_id, person_id)
-        VALUES (:team_id, :person_id)
+        SELECT :team_id, :person_id
+        WHERE EXISTS (SELECT 1 FROM person WHERE id = :person_id)
         ON CONFLICT (team_id, person_id) DO NOTHING
     """)
     load_to_db(data, query, "load_squadplayers")
