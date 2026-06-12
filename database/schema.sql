@@ -246,7 +246,6 @@ CREATE TABLE standings_save(
     team_id INTEGER,
     competition_id INTEGER,
     season_id INTEGER,
-    match_id INTEGER,
     stage VARCHAR(50),
     position INTEGER,
     playedGames INTEGER NOT NULL,
@@ -262,8 +261,8 @@ CREATE TABLE standings_save(
     PRIMARY KEY(team_id, competition_id, season_id,matchday),
     FOREIGN KEY(team_id) REFERENCES team(id),
     FOREIGN KEY(competition_id) REFERENCES competition(id),
-    FOREIGN KEY(season_id) REFERENCES season(id),
-    FOREIGN KEY(match_id) REFERENCES match(id)
+    FOREIGN KEY(season_id) REFERENCES season(id)
+    
 );
 
 CREATE TABLE scorers_save(
