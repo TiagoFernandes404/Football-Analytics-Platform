@@ -215,4 +215,42 @@ Configured a `cron` job to run the pipeline automatically on a weekly schedule, 
 
 ---
 
-**Next session:** TBD.
+## Session 6 — Historical Tracking per Matchday
+
+**Objectives:**
+- Implement the remaining Phase 1 objective: "Historical data tracking per season"
+- Design and add the necessary schema changes
+- Integrate the new logic into the existing ETL pipeline without extra API calls
+
+**Work done:**
+
+### Problem Analysis
+The `standings` and `scorers` tables use `ON CONFLICT DO UPDATE`, so each pipeline run overwrites previous values. Season-to-season comparisons already worked, but intra-season evolution (e.g. table at matchday 10) was being lost on every re-run.
+
+### Schema Additions
+Added two append-only tables, `standings_save` and `scorers_save`, mirroring `standings`/`scorers` with an added `matchday` column included in the primary key.
+
+### Design Decisions
+- `matchday` is not a foreign key — it's just a value describing when the snapshot was taken, no separate entity needed.
+- No `match_id` column — `standings`/`scorers` are season-cumulative totals, not tied to a single match; an earlier FK attempt against `match.matchday` was invalid since matchday isn't unique in `match`.
+- Used `ON CONFLICT DO NOTHING` instead of `DO UPDATE`, since `matchday` is part of the primary key — re-running within the same matchday no-ops, and a new row is inserted once the matchday advances.
+
+### Transform & Load
+Added `transform_standings_save`/`transform_scorers_save` to `transform.py`, and `load_standings_save`/`load_scorers_save` to `load.py` using the shared `load_to_db` helper with `ON CONFLICT (..., matchday) DO NOTHING`.
+
+### Pipeline Integration
+Wired the new functions into `runner.py`, reusing the already-fetched `scorers_data`/`standings_data` instead of making extra API calls, keeping requests under the 10 req/min limit.
+
+### Verification
+Ran the pipeline twice on the same day — first run inserted 13 `(competition_id, matchday)` combinations into `standings_save`; second run produced identical counts, confirming `ON CONFLICT DO NOTHING` prevents duplicate snapshots within the same matchday.
+
+### Known Cleanup Item
+`standings_save` still has a leftover, unused `match_id` column with an FK to `match.id` from an earlier design — needs to be dropped via `ALTER TABLE standings_save DROP COLUMN match_id;`.
+
+**Schema at end of session 6 — 17 tables** (added `standings_save`, `scorers_save`).
+
+---
+
+**Phase 1 status: complete.** All four objectives (normalised schema, ETL structure, logging/error handling, scheduled runs, historical tracking) are done.
+
+**Next session:** Begin Phase 2 — Docker & Containerisation.

@@ -258,3 +258,47 @@ def transform_seasons_winner(data):
         for competition in data['competitions']
         if safe_get(competition, 'currentSeason')
     ]
+
+
+
+def transform_scorers_save(data):
+    return [
+        {
+            "person_id": scorer['player']['id'],
+            "competition_id": data['competition']['id'],
+            "season_id": data['season']['id'],
+            "team_id": scorer['team']['id'],
+            "playedMatches": scorer['playedMatches'],
+            "goals": scorer['goals'],
+            "assists": safe_get(scorer, 'assists') or 0,
+            "penalties": safe_get(scorer, 'penalties') or 0,
+            "matchday":data['season']['currentMatchday']
+
+        }
+        for scorer in data['scorers']
+        if safe_get(scorer, 'player', 'id') and safe_get(scorer, 'team', 'id')
+    ]
+
+
+def transform_standings_save(data):
+    return [
+        {
+            "team_id": table['team']['id'],
+            "competition_id": data['competition']['id'],
+            "season_id": data['season']['id'],
+            "stage": safe_get(standings, 'stage'),
+            "position": table['position'],
+            "playedGames": table['playedGames'],
+            "form": safe_get(table, 'form'),
+            "won": table['won'],
+            "draw": table['draw'],
+            "lost": table['lost'],
+            "points": table['points'],
+            "goalsFor": table['goalsFor'],
+            "goalsAgainst": table['goalsAgainst'],
+            "goalDifference": table['goalDifference'],
+            "matchday":data['season']['currentMatchday']
+        }
+        for standings in data['standings']
+        for table in standings['table']
+    ]

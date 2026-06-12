@@ -94,7 +94,9 @@ for competition in competitions_data['competitions']:
     scorers_data = fetch_topscorers(competition_code)
     load_scorers(transform_scorers(scorers_data))
     standings_data = fetch_standings(competition_code)
-    load_standings(transform_standings(standings_data))
+    load_standings(transform_standings(standings_data)) 
+    load_scorers_save(transform_scorers_save(scorers_data))
+    load_standings_save(transform_standings_save(standings_data))
 
 # now that the teams are inserted we can update the seasons with the winner
 run_etl(fetch_competitions, transform_seasons_winner, load_seasons_winner)

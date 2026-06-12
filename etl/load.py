@@ -249,3 +249,21 @@ def load_seasons_winner(data):
         WHERE id = :id AND :winner_id IS NOT NULL
     """)
     load_to_db(data, query, "load_seasons_winner")
+
+# so now we need to load the new tabs for the db so we can save the processe thor "screenshtos"
+def load_scorers_save(data):
+    query = text("""
+        INSERT INTO scorers_save (person_id, competition_id, season_id, team_id, playedMatches, goals, assists, penalties,matchday)
+        VALUES (:person_id, :competition_id, :season_id, :team_id, :playedMatches, :goals, :assists, :penalties,:matchday)
+        ON CONFLICT (person_id, competition_id, season_id,matchday) DO NOTHING
+    """)
+    load_to_db(data, query, "load_scorers_save")
+
+
+def load_standings_save(data):
+    query = text("""
+        INSERT INTO standings_save (team_id, competition_id, season_id, stage, position, playedGames, form, won, draw, lost, points, goalsFor, goalsAgainst, goalDifference,matchday)
+        VALUES (:team_id, :competition_id, :season_id, :stage, :position, :playedGames, :form, :won, :draw, :lost, :points, :goalsFor, :goalsAgainst, :goalDifference,:matchday)
+        ON CONFLICT (team_id, competition_id, season_id,matchday) DO NOTHING
+    """)
+    load_to_db(data, query, "load_standings_save")

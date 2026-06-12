@@ -238,3 +238,47 @@ ALTER TABLE match
 
 ALTER TABLE referee
     ALTER COLUMN nationality DROP NOT NULL;
+
+-- as i want to be able to acess the data of the season for matchday what in my opinion makes sense so i just dont get the final standings 
+-- for the season but for everything
+
+CREATE TABLE standings_save(
+    team_id INTEGER,
+    competition_id INTEGER,
+    season_id INTEGER,
+    match_id INTEGER,
+    stage VARCHAR(50),
+    position INTEGER,
+    playedGames INTEGER NOT NULL,
+    form VARCHAR(20),
+    won INTEGER NOT NULL,
+    draw INTEGER NOT NULL,
+    lost INTEGER NOT NULL,
+    points INTEGER NOT NULL,
+    goalsFor INTEGER NOT NULL,
+    goalsAgainst INTEGER NOT NULL,
+    goalDifference INTEGER NOT NULL,
+    matchday INTEGER,
+    PRIMARY KEY(team_id, competition_id, season_id,matchday),
+    FOREIGN KEY(team_id) REFERENCES team(id),
+    FOREIGN KEY(competition_id) REFERENCES competition(id),
+    FOREIGN KEY(season_id) REFERENCES season(id),
+    FOREIGN KEY(match_id) REFERENCES match(id)
+);
+
+CREATE TABLE scorers_save(
+	person_id INTEGER,
+	competition_id INTEGER,
+	season_id INTEGER,
+	team_id INTEGER NOT NULL,
+	playedMatches INTEGER NOT NULL,
+	goals INTEGER NOT NULL,
+	assists INTEGER NOT NULL,
+	penalties INTEGER NOT NULL,
+    matchday INTEGER,
+	PRIMARY KEY(person_id,competition_id,season_id,matchday),
+	FOREIGN KEY(person_id) REFERENCES person(id),
+	FOREIGN KEY(competition_id) REFERENCES competition(id),
+	FOREIGN KEY(season_id) REFERENCES season(id)
+);
+

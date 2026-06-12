@@ -16,7 +16,7 @@ This is my first independent project outside of university — built to learn Po
 
 ## 🗺️ Project Roadmap
 
-### ✅ Phase 1 — ETL Data Pipeline *(in progress)*
+### ✅ Phase 1 — ETL Data Pipeline *(Completed)*
 
 Extract real football data from the [football-data.org](https://www.football-data.org) API (free tier), transform it and load it automatically into a PostgreSQL database.
 
@@ -25,7 +25,7 @@ Extract real football data from the [football-data.org](https://www.football-dat
 - ✅ ETL pipeline structure (extract / transform / load) — the backbone of the project, without which nothing else would be possible
 - ✅ Execution logs and error handling
 - ✅  Automated pipeline with scheduled runs
-- ⏳ Historical data tracking per season
+- ✅  Historical data tracking per season
 
 **What I expect to learn:** How to design and build a real data pipeline from scratch — consuming a REST API, handling real-world data quality issues, and loading data reliably into a relational database. Moving beyond university exercises into something that works with live, unpredictable data.
 
@@ -33,7 +33,7 @@ Extract real football data from the [football-data.org](https://www.football-dat
 
 ---
 
-### 🔜 Phase 2 — Docker & Containerisation
+### 🔜 Phase 2 — Docker & Containerisation *(in progress)*
 
 Package the entire project into Docker containers so that anyone can run it with a single command, regardless of their operating system or local setup.
 
