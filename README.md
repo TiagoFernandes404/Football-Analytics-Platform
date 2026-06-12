@@ -96,7 +96,7 @@ Refactor the transformation layer using dbt, the industry-standard tool for anal
 
 ## 🗄️ Database Schema
 
-15 tables designed from scratch by analysing each API endpoint response.
+17 tables designed from scratch by analysing each API endpoint response. The ER diagram below reflects the schema as of Phase 1 session 2 (15 tables) — the two append-only history tables (standings_save, scorers_save) added in session 6 are not yet represented in the diagram.
 For the full schema evolution and design decisions see [Development Log](docs/DEVELOPMENT_LOG.md).
 
 ![ER Diagram](docs/er_diagram_v2.png)
