@@ -1,5 +1,3 @@
-
-
 -- IDs come directly from the API so no SERIAL or IDENTITY needed
 -- TEXT for fields where max size is unpredictable (names, urls, etc)
 -- VARCHAR(n) where size is logically limited (e.g. tla is always 3 chars)
