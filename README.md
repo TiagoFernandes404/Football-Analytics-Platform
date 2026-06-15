@@ -154,7 +154,9 @@ football-analytics-platform/
 │   └── settings.py          # Configuration loader
 ├── database/
 │   ├── connection.py        # Database connection
-│   └── schema.sql           # SQL schema
+│   └── schema.sql           # SQL schema (auto-run on first container start)
+├── docker/
+│   └── Dockerfile           # Python pipeline image
 ├── etl/
 │   ├── extract.py           # API extraction
 │   ├── transform.py         # Data transformation
@@ -167,8 +169,12 @@ football-analytics-platform/
 │   ├── er_diagram.xml       # Editable draw.io file v1
 │   ├── er_diagram_v2.png    # ER diagram v2
 │   └── er_diagram_v2.xml    # Editable draw.io file v2
-├── logs/                    # Execution logs
+├── logs/                    # Execution logs (not committed)
+├── docker-compose.yml       # Service orchestration (pipeline + PostgreSQL)
+├── .dockerignore
 ├── .env                     # Environment variables (not committed)
+├── .env.example             # Environment variable template
 ├── requirements.txt
+├── run_weekly.sh            # Anacron wrapper script
 └── README.md
 ```
