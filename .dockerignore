@@ -1,0 +1,17 @@
+#Virtual environment
+venv/
+
+# Crendiencial
+.env
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/*.log
+
+# IDE
+.vscode/
+.idea/

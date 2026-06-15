@@ -254,3 +254,65 @@ Ran the pipeline twice on the same day — first run inserted 13 `(competition_i
 **Phase 1 status: complete.** All four objectives (normalised schema, ETL structure, logging/error handling, scheduled runs, historical tracking) are done.
 
 **Next session:** Begin Phase 2 — Docker & Containerisation.
+
+## Session 7 — Scheduling Reliability: Cron → Anacron Migration
+
+**Objectives:**
+- Diagnose why the scheduled weekly pipeline run did not execute
+- Research alternatives to `cron` for handling missed runs caused by the laptop being off/asleep
+- Implement and verify a more resilient scheduling mechanism
+
+**Work done:**
+
+### Problem Identified
+Today (Monday) I only turned the PC on after 11:00, the time the `cron` job was scheduled to run (`0 11 * * 1 ...`). Since `cron` has no catch-up behaviour, the job was simply never executed — if the machine isn't on at the exact scheduled minute, the run is silently skipped with no retry, no error, nothing. This meant the weekly extraction for that matchday could have been missed entirely.
+
+### Solution Research
+Compared three approaches for handling missed periodic jobs:
+- **anacron** — designed specifically for "catch-up" execution: runs missed daily/weekly/monthly jobs as soon as the system is next available
+- **systemd timers with `Persistent=true`** — a more modern equivalent, with better logging via `journalctl`, but more setup overhead (separate `.service` + `.timer` units)
+- **`@reboot` cron entry + custom timestamp check** — a DIY approach that would require writing and maintaining its own "last run" tracking logic
+
+Chose **anacron** as the simplest fit: it's purpose-built for this exact scenario and requires minimal configuration.
+
+### Implementation
+
+**Wrapper script (`run_weekly.sh`)**
+Extracted the existing cron command into a standalone script so it can be reused by anacron and logged consistently:
+
+```bash
+#!/bin/bash
+cd /home/tiago/football-analytics-platform
+source /home/tiago/football-analytics-platform/venv/bin/activate
+python3 -m pipeline.runner >> /home/tiago/football-analytics-platform/logs/pipeline_$(date +%Y%m%d_%H%M%S).log 2>&1
+```
+
+Made executable with `chmod +x`.
+
+**Anacron entry (`/etc/anacrontab`)**
+Added a new line to the existing system anacrontab:
+
+```
+7   15   football-analytics   su tiago -c /home/tiago/football-analytics-platform/run_weekly.sh
+```
+
+- `7` — run every 7 days (replicates the weekly cadence)
+- `15` — wait 15 minutes after detecting the job is overdue before running, giving the system time to settle after boot/login
+- `football-analytics` — unique identifier; anacron tracks the last-run timestamp for this job in `/var/spool/anacron/football-analytics`
+- `su tiago -c ...` — runs as the `tiago` user rather than root, preserving correct permissions for the venv and project files
+
+**Cleanup**
+Removed the old `0 11 * * 1 ...` entry from `crontab -e` to avoid the pipeline running twice (once via cron if the PC happens to be on at 11:00, and again via anacron's catch-up).
+
+### Verification
+Ran `sudo anacron -d -t /etc/anacrontab` in debug mode. Since `football-analytics` had no existing timestamp, anacron correctly flagged it as overdue:
+
+```
+Anacron 2.3 started on 2026-06-15
+Will run job `football-analytics' in 15 min.
+```
+
+This confirms the entry is syntactically valid and recognised by anacron, and that the job will execute (with output captured in `logs/`) after the configured delay.
+
+### Outcome
+The pipeline no longer depends on the PC being on at exactly 11:00 on Monday. As long as the machine is on for at least 15 minutes at some point within each 7-day window, anacron will trigger the run — eliminating the failure mode discovered today.
