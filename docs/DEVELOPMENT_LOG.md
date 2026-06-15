@@ -367,3 +367,50 @@ The project now runs entirely within Docker. Any developer can clone the reposit
 ### Design Decision — No Seed Data
 Decided against including a database dump in the repository. The data is sourced from the football-data.org API and redistributing it would risk violating their terms of service. Each user fetches their own copy using their own API key on first run.
 
+## Session 9 — Views & SQL Analytics Layer
+
+**Objectives:**
+- Design and implement a set of analytical views over the existing schema
+- Validate each view against real data
+- Commit the final SQL analytics layer
+
+**Work done:**
+
+### Views Implemented
+Designed and implemented 15 analytical views in `views.sql`, covering the most useful queries for a football analytics platform:
+
+| View | Description |
+|---|---|
+| `areas_with_most_teams` | Ranks areas by number of teams registered |
+| `average_age_per_team` | Average player age per team using `AGE()` on `dateOfBirth` |
+| `teams_distinct_nationalities` | Counts distinct player nationalities per team |
+| `teams_best_goal_difference_for_competition` | Teams ranked by goal difference per competition |
+| `teams_most_home_wins` | Teams with most home wins across finished matches |
+| `current_season_matches` | All matches belonging to active seasons |
+| `current_matchday_matches` | Matches scheduled for the current matchday |
+| `competition_winners` | Season winners per competition (where API provides `winner_id`) |
+| `top_scorers` | Top scorer per season per competition |
+| `top_assisters` | Top assister per season per competition |
+| `top_penalty_scorers` | Top penalty scorer per season per competition |
+| `most_matches_played` | Players with most matches played per competition via squad membership |
+| `current_matchday_per_competition` | Current matchday number for each active competition |
+| `referees_per_competition` | Count of distinct referees per competition |
+| `players_last_contract_year` | Players whose contracts expire this year or next |
+
+### Issues Found & Fixed During Validation
+
+While testing each view against real data, several issues were found and corrected:
+
+- Some views had incorrect aggregations or unnecessary `GROUP BY` clauses that produced wrong or duplicate results
+- One view used `AGE()` incorrectly on a future date, returning negative values — fixed by extracting the year directly from the date column
+- A missing `DISTINCT` in one view was inflating counts significantly, counting the same referee once per match instead of once per competition
+- A loose `SELECT` statement was left outside its comment block, causing it to execute automatically on every script run
+
+All issues were identified through manual testing against live data and corrected before the final commit.
+
+### Known Limitation
+
+The `most_matches_played` view uses squad membership as a proxy for match participation since lineup data is not available on the free API plan. Players transferred between teams within the same season may show slightly inflated counts — this is documented in a comment above the view.
+
+### Outcome
+All 15 views validated against live data and committed to the repository. The analytics layer is now queryable directly from pgAdmin or any SQL client connected to the database.

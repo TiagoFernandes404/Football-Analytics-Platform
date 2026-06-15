@@ -1,23 +1,5 @@
--- So i will implement that views i think they are usefull so here i go ahha
--- areas_with_most_teams
--- average_age_per_team
--- teams_distinct_nationalities
--- teams_best_goal_difference_for_competition
--- teams_most_home_wins
--- current_season_matches
--- current_matchday_matches
--- competition_winners
--- top_scorers 
--- top_assisters    
-
-
-
--- top_penalty_scorers
--- most_matches_played
--- current_matchday_per_competition
--- referees_per_competition
--- players_last_contract_year
-
+-- So in this file the commnet is under the view idk why just started like that i will leave it like that
+-- for the vibes i think haha
 
 CREATE OR REPLACE VIEW areas_with_most_teams AS
 SELECT a.name, COUNT(t.id) AS totalperarea
@@ -56,11 +38,10 @@ SELECT t.name, c.name AS compname,s.goalDifference
 FROM team t
 JOIN standings s ON t.id = s.team_id
 JOIN competition c ON s.competition_id = c.id
-GROUP BY t.name, compname , s.goalDifference
 ORDER BY goalDifference DESC;
 
 -- test of the view teams_best_goal_difference_for_competition 
---SELECT * FROM teams_best_goal_difference_for_competition;
+-- SELECT * FROM teams_best_goal_difference_for_competition;
 
 CREATE OR REPLACE VIEW teams_most_home_wins AS
 SELECT t.name ,COUNT (*) AS home_wins
@@ -78,7 +59,7 @@ CREATE OR REPLACE VIEW current_season_matches AS
 SELECT m.*
 FROM match m
 JOIN season s ON s.id = m.season_id
-WHERE s.endDate >= CURRENT_DATE
+WHERE s.endDate >= CURRENT_DATE;
  
 -- test of the view current_season_matches 
 -- SELECT * FROM current_season_matches;
@@ -123,3 +104,60 @@ ORDER BY s.season_id, s.competition_id, s.assists DESC;
 
 -- test of the view top_assisters
 -- SELECT * FROM top_assisters;
+
+CREATE OR REPLACE VIEW top_penalty_scorers AS
+SELECT DISTINCT ON (s.season_id, s.competition_id)s.season_id,s.competition_id,p.name,s.penalties
+FROM scorers s
+JOIN person p ON p.id = s.person_id
+ORDER BY s.season_id, s.competition_id, s.penalties DESC;
+
+-- test of the view top_penalty_scorers
+-- SELECT * FROM top_penalty_scorers;
+
+CREATE OR REPLACE VIEW most_matches_played AS
+SELECT c.name AS competition, p.name AS pessoa, COUNT(DISTINCT m.id) AS total_matches
+FROM person p
+JOIN squadplayer sp ON sp.person_id = p.id
+JOIN match m ON (m.homeTeam = sp.team_id OR m.awayTeam = sp.team_id)
+JOIN competition c ON c.id = m.competition_id
+WHERE m.status = 'FINISHED'
+GROUP BY c.name, p.name
+ORDER BY total_matches DESC;
+
+-- in this one is the only i got strange results like one player with 120 i cannot fixe it maybe is because of 
+-- he get transfer from the team and has the only way i get players is from teams i can mixed both teams he plays 
+-- for but as i am poor i only have the free api
+-- test of the view most_matches_played
+-- SELECT * FROM most_matches_played;
+
+CREATE OR REPLACE VIEW current_matchday_per_competition AS
+SELECT s.currentMatchday, c.name
+FROM competition c
+JOIN season s ON c.currentSeason = s.id;
+
+
+-- test of the view current_matchday_per_competition
+-- SELECT * FROM current_matchday_per_competition;
+
+CREATE OR REPLACE VIEW referees_per_competition AS
+SELECT c.name, COUNT( DISTINCT r.id) AS totalreferee
+FROM referee r
+JOIN matchreferee mr ON mr.referee_id = r.id
+JOIN match m ON m.id = mr.match_id
+JOIN competition c ON c.id = m.competition_id
+GROUP BY (c.name)
+ORDER BY totalreferee DESC;
+
+-- test of the view referees_per_competition
+-- SELECT * FROM referees_per_competition;
+
+CREATE OR REPLACE VIEW players_last_contract_year AS
+SELECT p.name, EXTRACT(YEAR FROM p.contractUntil) AS contract_year
+FROM person p 
+JOIN squadplayer sp ON sp.person_id = p.id
+WHERE p.contractUntil IS NOT NULL
+AND EXTRACT(YEAR FROM p.contractUntil) <= EXTRACT(YEAR FROM CURRENT_DATE) + 1
+ORDER BY contract_year;
+
+-- test of the view players_last_contract_year
+-- SELECT * FROM players_last_contract_year;

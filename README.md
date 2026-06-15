@@ -21,9 +21,9 @@ This is my first independent project outside of university — built to learn Po
 Extract real football data from the [football-data.org](https://www.football-data.org) API (free tier), transform it and load it automatically into a PostgreSQL database.
 
 **Objectives:**
-- ✅ Normalised relational schema designed from scratch
-- ✅ ETL pipeline structure (extract / transform / load) — the backbone of the project, without which nothing else would be possible
-- ✅ Execution logs and error handling
+- ✅  Normalised relational schema designed from scratch
+- ✅  ETL pipeline structure (extract / transform / load) — the backbone of the project, without which nothing else would be possible
+- ✅  Execution logs and error handling
 - ✅  Automated pipeline with scheduled runs
 - ✅  Historical data tracking per season
 
@@ -38,10 +38,10 @@ Extract real football data from the [football-data.org](https://www.football-dat
 Package the entire project into Docker containers so that anyone can run it with a single command, regardless of their operating system or local setup.
 
 **Objectives:**
-- `Dockerfile` for the Python pipeline
-- `docker-compose.yml` to spin up PostgreSQL + pipeline together
-- Environment variable management via `.env`
-- One-command setup for any machine
+- ✅  `Dockerfile` for the Python pipeline
+- ✅  `docker-compose.yml` to spin up PostgreSQL + pipeline together
+- ✅   Environment variable management via `.env`
+- ✅   One-command setup for any machine
 
 **What I expect to learn:** How to containerise an application and understand the basics of DevOps. Docker is something I had no exposure to at university and it appears constantly in job postings — I want to understand it properly, not just copy a template.
 
