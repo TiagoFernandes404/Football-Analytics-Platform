@@ -33,7 +33,7 @@ Extract real football data from the [football-data.org](https://www.football-dat
 
 ---
 
-### 🔜 Phase 2 — Docker & Containerisation *(in progress)*
+### ✅ Phase 2 — Docker & Containerisation *(complete)*
 
 Package the entire project into Docker containers so that anyone can run it with a single command, regardless of their operating system or local setup.
 
@@ -49,7 +49,7 @@ Package the entire project into Docker containers so that anyone can run it with
 
 ---
 
-### 🔜 Phase 3 — Scouting System
+### 🔜 Phase 3 — Scouting System *(in progress)*
 
 Build a scouting system on top of the pipeline data, allowing filtering of players by position, age and performance metrics, with direct player comparison.
 
@@ -113,36 +113,39 @@ For the full schema evolution and design decisions see [Development Log](docs/DE
 
 ## 🚀 Getting Started
 
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- A free API key from [football-data.org](https://www.football-data.org/)
+
+### Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/TiagoFernandes404/Football-Analytics-Platform.git
 cd football-analytics-platform
 
-# Create and activate virtual environment
-python3.11 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
 # Configure environment variables
 cp .env.example .env
 # Edit .env with your API key and database credentials
+
+# Build and run
+docker compose up --build
 ```
 
-### Environment Variables
+### Environment Variables (env)
 
-```
-API_KEY=your_football_data_api_key
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=football_intelligence_platform
-DB_USER=postgres
-DB_PASSWORD=your_password
-```
+| Variable | Description |
+|---|---|
+| `API_KEY` | Your football-data.org API key |
+| `DB_NAME` | Database name |
+| `DB_USER` | Database user |
+| `DB_PASSWORD` | Database password |
+
+### ⚠️ First Run
+The first run fetches all historical data from the API and may take up to 24 hours to complete depending on your API plan. Subsequent weekly runs are incremental and take only a few minutes.
 
 ---
-
 ## 📁 Project Structure
 
 ```

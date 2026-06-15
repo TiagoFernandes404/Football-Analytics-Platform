@@ -1,32 +1,39 @@
 services:
+
   db:
-    image: postgres:14
-    restart: unless-stopped
+    image: postgres:14          # Official PostgreSQL 14 image
+    restart: unless-stopped     # Restart on crash, but not on manual stop
+
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}         # Database name from .env
+      POSTGRES_USER: ${DB_USER}       # Database user from .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD} # Database password from .env
+
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_data:/var/lib/postgresql/data  # Persist data between restarts
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # Auto-run on first start
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]  # Check if db is ready
+      interval: 10s   # Check every 10 seconds
+      timeout: 5s     # Fail if no response in 5 seconds
+      retries: 5      # Mark unhealthy after 5 failures
 
   pipeline:
     build:
-      context: .
-      dockerfile: docker/Dockerfile
+      context: .                      # Project root as build context
+      dockerfile: docker/Dockerfile   # Dockerfile location
+
     env_file:
-      - .env
+      - .env    # Load all variables from .env
+
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
+      DB_HOST: db      # "db" resolves to the db container automatically
+      DB_PORT: 5432    # Default PostgreSQL port
+
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy  # Wait for db healthcheck to pass before starting
 
 volumes:
-  postgres_data:
+  postgres_data:  # Persistent volume managed by Docker

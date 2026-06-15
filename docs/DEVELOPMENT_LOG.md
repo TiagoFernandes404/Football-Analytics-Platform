@@ -316,3 +316,54 @@ This confirms the entry is syntactically valid and recognised by anacron, and th
 
 ### Outcome
 The pipeline no longer depends on the PC being on at exactly 11:00 on Monday. As long as the machine is on for at least 15 minutes at some point within each 7-day window, anacron will trigger the run — eliminating the failure mode discovered today.
+
+## Session 8 — Containerisation: Docker & PostgreSQL Migration
+
+**Objectives:**
+- Understand what Docker is, how it works and why it is used
+- Learn and implement Dockerfile, docker-compose.yml and .dockerignore
+- Containerise the project from scratch
+
+**Work done:**
+
+### Learning
+
+Started from zero on Docker — understood the core concepts: what containers are, how they differ from installing software directly on the host, and why Docker is the standard in professional environments. Understood the role of each file:
+
+- **Dockerfile** — defines how to build the application image (base image, dependencies, entrypoint)
+- **docker-compose.yml** — defines and orchestrates all services (application, database, etc.) and how they relate to each other
+- **.dockerignore** — excludes files from the build context (credentials, logs, virtual environments)
+
+### Implementation
+
+Built the full Docker setup for the project from scratch:
+
+**`docker/Dockerfile`**
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["python3", "-m", "pipeline.runner"]
+```
+
+**`docker-compose.yml`**
+- `db` service using the official `postgres:14` image
+- Named volume (`postgres_data`) for data persistence across restarts
+- `database/schema.sql` mounted into `/docker-entrypoint-initdb.d/` so tables are created automatically on first start
+- `healthcheck` on `db` so `pipeline` only starts after PostgreSQL is ready
+- `pipeline` service connecting to `db:5432` — service name acts as hostname within the Docker network
+
+**`.dockerignore`**
+Excluded `.env`, `venv/`, `logs/`, `__pycache__` and IDE files from the build context.
+
+**`.env.example`**
+Created a template so anyone cloning the repository knows which variables to define before running the project.
+
+### Outcome
+The project now runs entirely within Docker. Any developer can clone the repository, create a `.env` from `.env.example`, and run `docker compose up --build` — no local PostgreSQL or Python installation required.
+
+### Design Decision — No Seed Data
+Decided against including a database dump in the repository. The data is sourced from the football-data.org API and redistributing it would risk violating their terms of service. Each user fetches their own copy using their own API key on first run.
+
