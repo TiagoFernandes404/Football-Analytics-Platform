@@ -91,7 +91,7 @@ CREATE TABLE season(
 	winner_id INTEGER,
 	PRIMARY KEY(id),
 	FOREIGN KEY(winner_id) REFERENCES team(id)
-);
+);  
 
 CREATE TABLE referee(
 	id INTEGER,

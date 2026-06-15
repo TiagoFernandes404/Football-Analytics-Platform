@@ -7,18 +7,16 @@
 -- current_season_matches
 -- current_matchday_matches
 -- competition_winners
--- top_scorers
--- top_assisters
+-- top_scorers 
+-- top_assisters    
+
+
+
 -- top_penalty_scorers
 -- most_matches_played
 -- current_matchday_per_competition
 -- referees_per_competition
 -- players_last_contract_year
-
-
-
-
-
 
 
 CREATE OR REPLACE VIEW areas_with_most_teams AS
@@ -84,3 +82,44 @@ WHERE s.endDate >= CURRENT_DATE
  
 -- test of the view current_season_matches 
 -- SELECT * FROM current_season_matches;
+
+
+CREATE OR REPLACE VIEW current_matchday_matches AS
+SELECT m.*
+FROM match m
+JOIN season s ON s.id = m.season_id
+WHERE s.endDate >= CURRENT_DATE
+AND s.startDate < CURRENT_DATE
+AND m.matchday = s.currentMatchday;
+
+-- test of the view current_matchday_matches 
+-- SELECT * FROM current_matchday_matches;
+	
+CREATE OR REPLACE VIEW competition_winners AS
+SELECT DISTINCT c.name AS competition, t.name AS winner
+FROM season s
+JOIN team t   ON t.id  = s.winner_id
+JOIN match m  ON m.season_id = s.id
+JOIN competition c ON c.id = m.competition_id
+WHERE s.winner_id IS NOT NULL;
+
+-- test of the view competition_winners 
+-- SELECT * FROM competition_winners;
+
+CREATE OR REPLACE VIEW top_scorers AS
+SELECT DISTINCT ON (s.season_id, s.competition_id)s.season_id,s.competition_id,p.name,s.goals
+FROM scorers s
+JOIN person p ON p.id = s.person_id
+ORDER BY s.season_id, s.competition_id, s.goals DESC;
+
+-- test of the view top_scorers
+-- SELECT * FROM top_scorers;
+
+CREATE OR REPLACE VIEW top_assisters AS
+SELECT DISTINCT ON (s.season_id, s.competition_id)s.season_id,s.competition_id,p.name,s.assists
+FROM scorers s
+JOIN person p ON p.id = s.person_id
+ORDER BY s.season_id, s.competition_id, s.assists DESC;
+
+-- test of the view top_assisters
+-- SELECT * FROM top_assisters;
